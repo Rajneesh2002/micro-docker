@@ -1,0 +1,75 @@
+version: '2.4'
+
+services:
+
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3.10-rc-management-alpine
+    ports:
+      # AMQP protocol port
+      - "5672:5672"
+      # HTTP management UI
+      - "15672:15672"
+
+  users:
+    build:
+      context: ./users
+      args:
+        - NODE_ENV=development
+      target: dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./users:/app/
+    environment:
+      - SERVICE=users
+    env_file:
+      - ./users/.env
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+  products:
+    build:
+      context: ./products
+      args:
+        - NODE_ENV=development
+      target: dev
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./products:/app/
+    environment:
+      - SERVICE=products
+    env_file:
+      - ./products/.env
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+  orders:
+    build:
+      context: ./orders
+      args:
+        - NODE_ENV=development
+      target: dev
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./orders:/app/
+    environment:
+      - SERVICE=orders
+    env_file:
+      - ./orders/.env
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+volumes:
+  data:
